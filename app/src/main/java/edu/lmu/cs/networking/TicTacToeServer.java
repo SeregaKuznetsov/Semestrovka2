@@ -40,7 +40,7 @@ public class TicTacToeServer {
      */
     public static void main(String[] args) throws Exception {
         ServerSocket listener = new ServerSocket(8901);
-        System.out.println("Tic Tac Toe Server is Running");
+        System.out.println("Bomber Server is Running");
         try {
             while (true) {
                 Game game = new Game();
@@ -50,12 +50,23 @@ public class TicTacToeServer {
                 playerX.setOpponent(playerO);
                 playerO.setOpponent(playerX);
                 game.currentPlayer = playerX;
+                game.setBoard(createMap(game));
                 playerX.start();
                 playerO.start();
             }
         } finally {
             listener.close();
         }
+    }
+
+    private static Object[] createMap(Game game) {
+
+        Object[] board = {
+                null, game.brick, null,
+                null, game.brick, null,
+                null, game.granite, null};
+
+        return board;
     }
 }
 
