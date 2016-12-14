@@ -75,7 +75,7 @@ public class Game {
             return -1;
     }
 
-    /*private synchronized boolean legalShow(Player player, String command, PrintWriter output) {
+    private synchronized boolean legalShow(Player player, String command, PrintWriter output) {
 
         if (player == currentPlayer) {
             String direction = command.substring(5);
@@ -98,14 +98,14 @@ public class Game {
             return true;
         }
         return false;
-    }*/
+    }
 
     private int isBrick(int location) {
 
         if (board[location].equals(currentPlayer.opponent)) {
             return 0;
         }
-        else if (board[location].equals(brick) || board[location].equals(granite)) {
+        else if (board[location].equals(Blocks.BRICK) || board[location].equals(Blocks.GRANITE)) {
             return 1;
         }
         return -1;
@@ -133,11 +133,11 @@ public class Game {
 
                 checkArrayIndexOutOfBoundsException(direction);
 
-                if (isBrick(location) == 1) // Если препятсвие
-                    throw new ArrayIndexOutOfBoundsException();
-                else if (isBrick(location) == 0) // Если другой игрок стоит на клетке
-                    throw new NullPointerException();
-
+                if (board[location].equals(Blocks.BRICK) || board[location].equals(Blocks.GRANITE)) { //если препятствие
+                        throw new ArrayIndexOutOfBoundsException();
+                }  else if (board[location].equals(currentPlayer.opponent)) { //если на клетке находится другой игрок
+                        throw new NullPointerException();
+            }
 
             } catch (ArrayIndexOutOfBoundsException e) { //если встретили препятсвие
                 e.printStackTrace();
@@ -174,12 +174,12 @@ public class Game {
                     output.println("VICTORY");
                     message = "DEFEAT";
 
-                } else if (board[location].equals(brick)) { //если стена
+                } else if (board[location].equals(Blocks.BRICK)) { //если стена
                     board[location] = null;
                     output.println("DESTROYED " + direction);
                     message = "OPPONENT_DESTROYED " + direction;
 
-                } else if (board[location].equals(granite)) { //если гранит
+                } else if (board[location].equals(Blocks.GRANITE)) { //если гранит
                     output.println("NOT_DESTROYED " + direction);
                     message = "OPPONENT_NOT_DESTROYED " + direction;
                 }
@@ -217,14 +217,9 @@ public class Game {
      * reader and a writer.
      */
 
-    private class Brick {
+    public enum Blocks {
+            BRICK, GRANITE
     }
-
-    private class Granite {
-    }
-
-    Brick brick = new Brick();
-    Granite granite = new Granite();
 
     class Player extends Thread {
         char mark;
@@ -319,11 +314,11 @@ public class Game {
                 while (true) {
                     String command = input.readLine();
                     if (command != null) {
-                        /*if (command.startsWith("SHOW") && !wasShow) {
+                        if (command.startsWith("SHOW") && !wasShow) {
                             if (!legalShow(this, command, output))
                                 output.println("MESSAGE It's not your turn");
 
-                        }*/ if (command.startsWith("MOVE") && !wasMove) {
+                        } if (command.startsWith("MOVE") && !wasMove) {
                             if (!legalMove(this, command, output))
                                 output.println("MESSAGE It's not your turn");
 

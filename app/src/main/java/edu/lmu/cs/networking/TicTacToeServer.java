@@ -62,11 +62,9 @@ public class TicTacToeServer {
     private static Object[] createMap(Game game) {
 
         Object[] board = {
-                null, null, game.brick, null, null,
-                null, null, null, null, null,
-                null, null, null, null, null,
-                null, null, null, null, null,
-                null, null, game.granite, null, null};
+                null, Game.Blocks.GRANITE,null,
+                null,null,null,
+                null,Game.Blocks.BRICK,null};
 
         return board;
     }

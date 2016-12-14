@@ -18,7 +18,7 @@ public class BomberManClient {
     private JFrame frame = new JFrame("BomberMan");
     private JLabel messageLabel = new JLabel("");
 
-    private final int size = 100;
+    private final int size = 25;
     private final int sideSize = (int) Math.sqrt(size);
     private Square[] board = new Square[size];
     private Square[] opponentBoard = new Square[size];
@@ -123,7 +123,7 @@ public class BomberManClient {
                             out.println("BOMB DOWN");
                     }
 
-                    /*if (e.getButton() == MouseEvent.BUTTON3) {
+                    if (e.getButton() == MouseEvent.BUTTON3) {
                         if (j == currentLocation - 1)
                             out.println("SHOW LEFT");
                         else if (j == currentLocation + 1)
@@ -132,7 +132,7 @@ public class BomberManClient {
                             out.println("SHOW UP");
                         else if (j == currentLocation + sideSize)
                             out.println("SHOW DOWN");
-                    }*/
+                    }
                 }
             });
             boardPanel.add(board[i]);
@@ -230,7 +230,6 @@ public class BomberManClient {
                 }
             }
             out.println("QUIT");
-            messageLabel.setText("QUIT");
         } finally {
             socket.close();
         }
