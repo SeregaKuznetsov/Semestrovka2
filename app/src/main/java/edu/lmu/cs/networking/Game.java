@@ -21,7 +21,7 @@ public class Game {
      */
 
     private int size = 9;
-    private int columnLength = (int) Math.sqrt(size);
+    private int sideSize = (int) Math.sqrt(size);
     private Object[] board;
 
     /**
@@ -34,19 +34,19 @@ public class Game {
 
         this.board = board;
 
-        currentPlayer.previousLocation = (int) (Math.random() * board.length);
-        currentPlayer.opponent.previousLocation = (int) (Math.random() * board.length);
+        currentPlayer.playerLocation = (int) (Math.random() * board.length);
+        currentPlayer.opponent.playerLocation = (int) (Math.random() * board.length);
 
-        currentPlayer.setStartPosition(currentPlayer.previousLocation);
-        System.out.println(currentPlayer + " - " + currentPlayer.previousLocation);
-        currentPlayer = currentPlayer.opponent;
+        currentPlayer.setStartPosition(currentPlayer.playerLocation);
+        System.out.println(currentPlayer + " - " + currentPlayer.playerLocation);
+        currentPlayer.setOtherStartPosition(currentPlayer.opponent.playerLocation);
+        changePlayer();
 
-        currentPlayer.setStartPosition(currentPlayer.previousLocation);
-        System.out.println(currentPlayer + " - " + currentPlayer.previousLocation);
-        currentPlayer.setOtherStartPosition(currentPlayer.opponent.previousLocation);
+        currentPlayer.setStartPosition(currentPlayer.playerLocation);
+        System.out.println(currentPlayer + " - " + currentPlayer.playerLocation);
+        currentPlayer.setOtherStartPosition(currentPlayer.opponent.playerLocation);
+        changePlayer();
 
-        currentPlayer = currentPlayer.opponent;
-        currentPlayer.setOtherStartPosition(currentPlayer.opponent.previousLocation);
     }
 
     private void changePlayer() {
@@ -62,6 +62,55 @@ public class Game {
         return board[location].equals(currentPlayer.opponent);
     }
 
+    private synchronized int getLocationByDirection(String direction) {
+        if (direction.startsWith("LEFT"))
+            return currentPlayer.playerLocation - 1;
+        else if (direction.startsWith("RIGHT"))
+            return currentPlayer.playerLocation + 1;
+        else if (direction.startsWith("UP"))
+            return currentPlayer.playerLocation -  sideSize;
+        else if (direction.startsWith("DOWN"))
+            return currentPlayer.playerLocation +  sideSize;
+        else
+            return -1;
+    }
+
+    /*private synchronized boolean legalShow(Player player, String command, PrintWriter output) {
+
+        if (player == currentPlayer) {
+            String direction = command.substring(5);
+            int location = getLocationByDirection(direction); //определяем координату по направлению
+            int code;
+
+            try {
+
+            code = isBrick(location);
+            checkArrayIndexOutOfBoundsException(direction);
+
+            } catch (NullPointerException e) { //если клетка пустая
+                code = 0;
+            } catch (ArrayIndexOutOfBoundsException e) { //если вышли за пределы поля
+                code = 1;
+            }
+            output.println("OPEN " + code + " " + direction);
+            currentPlayer.opponent.otherPlayerOpened(code, direction);
+            currentPlayer.wasShow = true;
+            return true;
+        }
+        return false;
+    }*/
+
+    private int isBrick(int location) {
+
+        if (board[location].equals(currentPlayer.opponent)) {
+            return 0;
+        }
+        else if (board[location].equals(brick) || board[location].equals(granite)) {
+            return 1;
+        }
+        return -1;
+    }
+
     /**
      * Called by the player threads when a player tries to make a
      * move.  This method checks to see if the move is legal: that
@@ -73,148 +122,90 @@ public class Game {
      * client.
      */
 
-    private synchronized int direction(String subCommand) {
-        if (subCommand.startsWith("LEFT"))
-            return currentPlayer.previousLocation - 1;
-        else if (subCommand.startsWith("RIGHT"))
-            return currentPlayer.previousLocation + 1;
-        else if (subCommand.startsWith("UP"))
-            return currentPlayer.previousLocation - columnLength;
-        else if (subCommand.startsWith("DOWN"))
-            return currentPlayer.previousLocation + columnLength;
-        else
-            return -1;
-    }
+    private synchronized boolean legalMove(Player player, String command, PrintWriter output) {
+        if (player == currentPlayer) {
+            String direction = command.substring(5); // LEFT, RIGHT, UP, DOWN
+            int location = getLocationByDirection(direction);
 
-    private synchronized boolean validShow(Player player, String command, PrintWriter output) {
-        if (player == currentPlayer) { //если сейчас ходит правильный игрок
-            String turn = command.substring(5);
-            int location = direction(turn); //определяем координату по направлению
-            int code = -1; //код клетки (0 - пусто, 1 - препятствие)
+            board[currentPlayer.playerLocation] = null;
 
             try {
-                if (currentPlayer.previousLocation % columnLength == 0 && turn.equals("LEFT")) { //проверка для одномерного массива
+
+                checkArrayIndexOutOfBoundsException(direction);
+
+                if (isBrick(location) == 1) // Если препятсвие
                     throw new ArrayIndexOutOfBoundsException();
-                } else if ((currentPlayer.previousLocation + 1) % columnLength == 0 && turn.equals("RIGHT")) { //проверка для одномерного массива
-                    throw new ArrayIndexOutOfBoundsException();
-                }
+                else if (isBrick(location) == 0) // Если другой игрок стоит на клетке
+                    throw new NullPointerException();
 
-                if (board[location].equals(currentPlayer.opponent)) {
-                    code = 0;
-                } else if (board[location].equals(brick) || board[location].equals(granite)) {
-                    code = 1;
-                }
 
-            } catch (NullPointerException e) { //если клетка пустая
-                code = 0;
-            } catch (ArrayIndexOutOfBoundsException e) { //если вышли за пределы поля
-                code = 1;
-            }
-            output.println("OPEN " + code + " " + turn); //команда отдает состояние нужной клетки пользователю
-            currentPlayer.opponent.otherPlayerOpened(code, turn); //уведомляем оппонента о результате хода
-            currentPlayer.wasShow = true;
-            return true;
-        }
-        return false;
-    }
-
-    private synchronized boolean validMove(Player player, String command, PrintWriter output) {
-        if (player == currentPlayer) { //если сейчас ходит правильный игрок
-            String turn = command.substring(5); //достаем направление
-            int location = direction(turn); //определяем координату по направлению
-
-            board[currentPlayer.previousLocation] = null; //удаляем предыдушую точку игрока
-
-            try {
-                if (currentPlayer.previousLocation % columnLength == 0 && turn.equals("LEFT")) { //проверка для одномерного массива
-                    throw new ArrayIndexOutOfBoundsException();
-                } else if ((currentPlayer.previousLocation + 1) % columnLength == 0 && turn.equals("RIGHT")) { //проверка для одномерного массива
-                    throw new ArrayIndexOutOfBoundsException();
-                }
-
-                if (board[location].equals(brick) || board[location].equals(granite)) { //если препятствие
-                    int code = 1; //если препятствие то это код 1
-                    output.println("OPEN " + code + " " + turn); //команда открыть клетку по заданному направлению с определенным кодом
-                    currentPlayer.opponent.otherPlayerOpened(code, turn); //уведомляем оппонента о результате своего хода
-                    currentPlayer.wasShow = true;
-
-                } else if (board[location].equals(currentPlayer.opponent)) { //если на клетке пусто, то идем
-                    board[location] = currentPlayer; //игрок встает на клетку
-                    //int from = currentPlayer.previousLocation; //запоминаем предыдущую клетку
-                    output.println("VALID_MOVE " + turn); //команда разрешает ход
-                    currentPlayer.opponent.otherPlayerMoved(turn); //уведомляем оппонента о результате своего хода
-                    currentPlayer.previousLocation = location; //запоминаем позицию игрока
-                    currentPlayer.setAction(); //ход переходит оппоненту
-                }
-
-            } catch (ArrayIndexOutOfBoundsException e) { //если вышли за клетку
+            } catch (ArrayIndexOutOfBoundsException e) { //если встретили препятсвие
                 e.printStackTrace();
-                int code = 1; //все что за полем - препятствие
-                output.println("OPEN " + code + " " + turn); //команда для клиента нарисовать стену (т.к. код 1)
-                currentPlayer.opponent.otherPlayerOpened(code, turn); //уведомляем оппонента о результате своего хода
-                currentPlayer.wasShow = true;
+                int code = 1;
+                output.println("OPEN " + code + " " +  direction); //команда для клиента нарисовать стену
+                output.println("MESSAGE You can't go through the block " + direction);
+                currentPlayer.opponent.otherPlayerOpened(code,  direction); // Говорим оппоненту о своем ходе
 
             } catch (NullPointerException e) { //если на клетке пусто, то идем
                 e.printStackTrace();
                 board[location] = currentPlayer; //игрок встает на клетку
-                output.println("VALID_MOVE " + turn); //команда разрешает ход
-                currentPlayer.opponent.otherPlayerMoved(turn); //уведомляем оппонента о результате своего хода
-                currentPlayer.previousLocation = location; //запоминаем позицию игрока
-                currentPlayer.setAction(); //ход переходит оппоненту
+                output.println("VALID_MOVE " + direction); //команда разрешает ход
+                currentPlayer.opponent.otherPlayerMoved(direction); // Говорим оппоненту о своем ходе
+                currentPlayer.playerLocation = location;
+                currentPlayer.endTurn(); // ЗАканчиваем ход
             }
             return true;
         }
         return false;
     }
 
-    private synchronized boolean validThrow(Player player, String command, PrintWriter output) {
+    private synchronized boolean legalThrow(Player player, String command, PrintWriter output) {
         if (player == currentPlayer) {
-            String turn = command.substring(5); //достаем направление
-            int location = direction(turn); //определяем координату по направлению
-            String message = null; //сообщение для оппонента о результате своего хода
+            String direction = command.substring(5);
+            int location = getLocationByDirection(direction);
+            String message = null; //сообщение для оппонента
 
             try {
-                if (currentPlayer.previousLocation % columnLength == 0 && turn.equals("LEFT")) { //проверка для одномерного массива
-                    throw new ArrayIndexOutOfBoundsException();
-                } else if ((currentPlayer.previousLocation + 1) % columnLength == 0 && turn.equals("RIGHT")) { //проверка для одномерного массива
-                    throw new ArrayIndexOutOfBoundsException();
-                }
 
-                if (hasWinner(location)) { //проверка на попадание
+                checkArrayIndexOutOfBoundsException(direction);
+
+                if (hasWinner(location)) { //проверка на попадание в оппонента
                     board[location] = null;
                     output.println("VICTORY");
-
                     message = "DEFEAT";
 
-                } else if (board[location].equals(brick)) { //если кирпич, то ломаем его
+                } else if (board[location].equals(brick)) { //если стена
                     board[location] = null;
-                    output.println("DESTROYED " + turn);
-
-                    message = "OPPONENT_DESTROYED " + turn;
+                    output.println("DESTROYED " + direction);
+                    message = "OPPONENT_DESTROYED " + direction;
 
                 } else if (board[location].equals(granite)) { //если гранит
-                    output.println("NOT_DESTROYED " + turn);
-
-                    message = "OPPONENT_NOT_DESTROYED " + turn;
+                    output.println("NOT_DESTROYED " + direction);
+                    message = "OPPONENT_NOT_DESTROYED " + direction;
                 }
             } catch (NullPointerException e) { //если попали в пустоту
                 e.printStackTrace();
-                if (player == currentPlayer) {
-                    output.println("THROW_INTO_THE_VOID " + turn);
+                output.println("THROW_INTO_THE_VOID " + direction);
+                message = "OPPONENT_THROW_INTO_THE_VOID " + direction;
 
-                    message = "OPPONENT_THROW_INTO_THE_VOID " + turn;
-                }
-            } catch (ArrayIndexOutOfBoundsException e) { //если стреляем дальше границы поля
+            } catch (ArrayIndexOutOfBoundsException e) { //если бросаем дальше границы поля
                 e.printStackTrace();
-                output.println("NOT_DESTROYED " + turn);
-
-                message = "OPPONENT_NOT_DESTROYED " + turn;
+                output.println("NOT_DESTROYED " + direction);
+                message = "OPPONENT_NOT_DESTROYED " + direction;
             }
-            currentPlayer.opponent.otherPlayerThrowed(message); //уведомляем оппонента о результате своего хода
-            currentPlayer.setAction(); // ход переходит оппоненту
+            currentPlayer.opponent.otherPlayerThrowed(message);
+            currentPlayer.endTurn();
             return true;
         }
         return false;
+    }
+
+    private void checkArrayIndexOutOfBoundsException(String direction) {
+        if (currentPlayer.playerLocation % sideSize == 0 && direction.equals("LEFT")) {
+            throw new ArrayIndexOutOfBoundsException();
+        } else if ((currentPlayer.playerLocation + 1) % sideSize == 0 && direction.equals("RIGHT")) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
     }
 
     /**
@@ -241,15 +232,9 @@ public class Game {
         Socket socket;
         BufferedReader input;
         PrintWriter output;
+        int playerLocation;
 
-        int currentLocation;
-        int previousLocation;
-
-        boolean firstMove = true;
-
-        //       boolean firstAction = true;
-        //       boolean secondAction = false;
-
+        // Available actions
         boolean wasShow = false;
         boolean wasMove = false;
         boolean wasThrow = false;
@@ -287,11 +272,8 @@ public class Game {
          */
 
         void setOtherStartPosition(int location) {
-            if (firstMove) {
                 board[location] = currentPlayer.opponent;
                 output.println("OPPONENT_START");
-                currentPlayer.firstMove = false;
-            }
         }
 
         void otherPlayerOpened(int code, String turn) {
@@ -300,6 +282,7 @@ public class Game {
 
         void otherPlayerMoved(String turn) {
             output.println("OPPONENT_MOVED " + turn);
+            output.println("MESSAGE OPPONENT_MOVED " + turn);
         }
 
         void otherPlayerThrowed(String message) {
@@ -307,28 +290,16 @@ public class Game {
         }
 
         void setStartPosition(int location) {
-            if (firstMove) {
-                board[location] = currentPlayer; //ставим игрока на стартовую позицию
+                board[location] = currentPlayer;
                 output.println("START");
-            }
         }
 
-        void setAction() {
-            /*
-            if (firstAction && !secondAction) {
-                firstAction = false;
-                secondAction = true;
-            } else if (!firstAction && secondAction) {
-                firstAction = true;
-                secondAction = false;
-            */
+        void endTurn() {
             wasShow = false;
             wasMove = false;
             wasThrow = false;
-
             changePlayer();
         }
-        //}
 
         /**
          * The run method of this thread.
@@ -339,7 +310,7 @@ public class Game {
                 // The thread is only started after everyone connects.
                 output.println("MESSAGE All players connected");
 
-                // Tell the first player that it is her turn.
+                // Tell the first player that it is his turn.
                 if (mark == 'X') {
                     output.println("MESSAGE Your move");
                 }
@@ -348,34 +319,22 @@ public class Game {
                 while (true) {
                     String command = input.readLine();
                     if (command != null) {
-                        if (command.startsWith("SHOW") && !wasShow) {
-                            if (!validShow(this, command, output)) {
+                        /*if (command.startsWith("SHOW") && !wasShow) {
+                            if (!legalShow(this, command, output))
                                 output.println("MESSAGE It's not your turn");
-                            } else {
-                                //wasShow = true;
-                                //setAction();
-                            }
 
-                        } else if (command.startsWith("MOVE") && !wasMove) {
-                            if (!validMove(this, command, output)) {
+                        }*/ if (command.startsWith("MOVE") && !wasMove) {
+                            if (!legalMove(this, command, output))
                                 output.println("MESSAGE It's not your turn");
-                            } else {
-                                //wasMove = true;
-                                //setAction();
-                            }
 
                         } else if (command.startsWith("BOMB") && !wasThrow) {
-                            if (!validThrow(this, command, output)) {
+                            if (!legalThrow(this, command, output))
                                 output.println("MESSAGE It's not your turn");
-                            } else {
-                                //wasThrow = true;
-                                //setAction();
-                            }
+                        }
+                        else if (command.startsWith("CHANGE"))
+                            endTurn();
 
-                        } else if (command.startsWith("CHANGE")) {
-                            setAction();
-
-                        } else if (command.startsWith("QUIT")) {
+                        else if (command.startsWith("QUIT")) {
                             return;
                         }
                     }

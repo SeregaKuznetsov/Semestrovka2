@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.Socket;
 
 import javax.swing.*;
@@ -17,7 +18,7 @@ public class BomberManClient {
     private JFrame frame = new JFrame("BomberMan");
     private JLabel messageLabel = new JLabel("");
 
-    private final int size = 25;
+    private final int size = 100;
     private final int sideSize = (int) Math.sqrt(size);
     private Square[] board = new Square[size];
     private Square[] opponentBoard = new Square[size];
@@ -27,10 +28,10 @@ public class BomberManClient {
     //Images
     private ImageIcon icon;
     private ImageIcon opponentIcon;
-    private ImageIcon empty = createImageIcon("smallwhite.png", "EmptyField image");
-    private ImageIcon barrier = createImageIcon("smallbarrier.png", "Barrier image");
-    private ImageIcon granite = createImageIcon("smallgranite.png", "Granite image");
-    private ImageIcon destroyed = createImageIcon("smalldestroyed.png", "Destroyed image");
+    private ImageIcon empty = createImageIcon("emptyField.png", "EmptyField image");
+    private ImageIcon barrier = createImageIcon("brick.png", "Brick image");
+    private ImageIcon granite = createImageIcon("granite.png", "Granite image");
+    private ImageIcon destroyed = createImageIcon("destroyedWall.png", "DestroyedWall image");
 
     private Socket socket;
     private int PORT = 8901;
@@ -45,14 +46,18 @@ public class BomberManClient {
 
     private BomberManClient(String serverAddress) throws Exception {
 
-        // Setup networking
+        try {
+            socket = new Socket(serverAddress, PORT);
+            in = new BufferedReader(new InputStreamReader(
+                    socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+        }  catch (ConnectException e) {
+            JOptionPane.showConfirmDialog(frame,
+                    "Sorry, server is not running",
+                    "Error",
+                    JOptionPane.CLOSED_OPTION);
+        }
 
-        socket = new Socket(serverAddress, PORT);
-        in = new BufferedReader(new InputStreamReader(
-                socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
-
-        // Layout GUI
         messageLabel.setBackground(Color.black);
         frame.getContentPane().add(messageLabel, "South");
 
@@ -78,12 +83,11 @@ public class BomberManClient {
             }
         });
 
-
         JPanel boardPanel = new JPanel();
-        boardPanel.setLayout(new GridLayout(sideSize, sideSize, sideSize - 1, sideSize - 1));
+        boardPanel.setLayout(new GridLayout(sideSize, sideSize, 4, 4));
 
         JPanel opponentBoardPanel = new JPanel();
-        opponentBoardPanel.setLayout(new GridLayout(sideSize, sideSize, sideSize - 1, sideSize - 1));
+        opponentBoardPanel.setLayout(new GridLayout(sideSize, sideSize, 4, 4));
 
         JPanel labelPanel = new JPanel();
         labelPanel.setLayout(new BoxLayout(labelPanel, BoxLayout.Y_AXIS));
@@ -119,7 +123,7 @@ public class BomberManClient {
                             out.println("BOMB DOWN");
                     }
 
-                    if (e.getButton() == MouseEvent.BUTTON3) {
+                    /*if (e.getButton() == MouseEvent.BUTTON3) {
                         if (j == currentLocation - 1)
                             out.println("SHOW LEFT");
                         else if (j == currentLocation + 1)
@@ -128,7 +132,7 @@ public class BomberManClient {
                             out.println("SHOW UP");
                         else if (j == currentLocation + sideSize)
                             out.println("SHOW DOWN");
-                    }
+                    }*/
                 }
             });
             boardPanel.add(board[i]);
@@ -226,12 +230,13 @@ public class BomberManClient {
                 }
             }
             out.println("QUIT");
+            messageLabel.setText("QUIT");
         } finally {
             socket.close();
         }
     }
 
-    private int direction(String direction, boolean current) {
+    private int getLocationByDirection(String direction, boolean current) {
         int location;
         if (current)
             location = currentLocation;
@@ -251,7 +256,7 @@ public class BomberManClient {
     }
 
     private void startLocation(Square[] board, ImageIcon icon) {
-        int startLocation = (size - 1)/2; //12 - center
+        int startLocation = (size - 1)/2;
         if (icon.equals(this.icon)) {
             currentLocation = startLocation;
         } else {
@@ -285,7 +290,7 @@ public class BomberManClient {
 
         } else {
 
-            int location = direction(turn, current); //определяем координату по направлению
+            int location = getLocationByDirection(turn, current); //определяем координату по направлению
 
             if (code == 0) {
                 board[location].setIcon(empty);
@@ -303,9 +308,9 @@ public class BomberManClient {
     }
 
     private void moveLocation(String response, Square[] board, int n, ImageIcon icon, boolean current) {
-        //messageLabel.setText("Valid move, please wait");
+
         String turn = response.substring(n);
-        int location = direction(turn, current); //определяем координату по направлению
+        int location = getLocationByDirection(turn, current); //определяем координату по направлению
         board[location].setIcon(icon);
         board[location].repaint();
 
@@ -322,7 +327,7 @@ public class BomberManClient {
 
     private void destroyedLocation(String response, Square[] board, int n, boolean current) {
         String turn = response.substring(n);
-        int location = direction(turn, current); //определяем координату по направлению
+        int location = getLocationByDirection(turn, current); //определяем координату по направлению
         board[location].setIcon(destroyed);
         board[location].repaint();
 
@@ -334,7 +339,7 @@ public class BomberManClient {
 
     private void notDestroyedLocation(String response, Square[] board, int n, boolean current) {
         String turn = response.substring(n);
-        int location = direction(turn, current); //определяем координату по направлению
+        int location = getLocationByDirection(turn, current); //определяем координату по направлению
         board[location].setIcon(granite);
         board[location].repaint();
 
