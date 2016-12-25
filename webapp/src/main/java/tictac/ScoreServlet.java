@@ -6,9 +6,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
-import edu.lmu.cs.networking.TicTacToeServer;
+import edu.lmu.cs.networking.BomberManServer;
 import edu.lmu.cs.networking.Game;
 
 import org.apache.log4j.Logger;
@@ -30,7 +29,7 @@ public class ScoreServlet extends HttpServlet {
         //req.setAttribute("users",userList);
         //req.setAttribute("sessionUser",req.getSession().getAttribute("user"));
         //getServletContext().getRequestDispatcher("/users.jsp").forward(req, resp);    }
-        for (Game game : TicTacToeServer.gamesArchive)
+        for (Game game : BomberManServer.gamesArchive)
         {
             resp.getWriter().println(game.toString()+"<br>");
         }

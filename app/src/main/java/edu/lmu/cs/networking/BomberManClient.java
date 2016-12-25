@@ -94,16 +94,13 @@ public class BomberManClient {
 
         JLabel label1 = new JLabel("Use <- -> to move\n");
         JLabel label2 = new JLabel("Left mouse button - Plant the bomb\n");
-        JLabel label3 = new JLabel("Right mouse button - Check field\n");
         JLabel label4 = new JLabel("Enter - Miss turn\n");
         label1.setAlignmentX(Component.CENTER_ALIGNMENT);
         label2.setAlignmentX(Component.CENTER_ALIGNMENT);
-        label3.setAlignmentX(Component.CENTER_ALIGNMENT);
         label4.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         labelPanel.add(label1);
         labelPanel.add(label2);
-        labelPanel.add(label3);
         labelPanel.add(label4);
         frame.getContentPane().add(labelPanel, "Center");
 
@@ -121,17 +118,6 @@ public class BomberManClient {
                             out.println("BOMB UP");
                         else if (j == currentLocation + sideSize)
                             out.println("BOMB DOWN");
-                    }
-
-                    if (e.getButton() == MouseEvent.BUTTON3) {
-                        if (j == currentLocation - 1)
-                            out.println("SHOW LEFT");
-                        else if (j == currentLocation + 1)
-                            out.println("SHOW RIGHT");
-                        else if (j == currentLocation - sideSize)
-                            out.println("SHOW UP");
-                        else if (j == currentLocation + sideSize)
-                            out.println("SHOW DOWN");
                     }
                 }
             });

@@ -3,7 +3,7 @@ package tictac;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import edu.lmu.cs.networking.TicTacToeServer;
+import edu.lmu.cs.networking.BomberManServer;
 
 /**
  * Created by Ilya Evlampiev on 13.12.2015.
@@ -14,7 +14,7 @@ public class TicTacToeStarterOnWebApp implements ServletContextListener {
 
         Thread serverThread = new Thread() {
             public void run() {
-                TicTacToeServer server = new TicTacToeServer();
+                BomberManServer server = new BomberManServer();
                 try
 
                 {

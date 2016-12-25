@@ -1,7 +1,6 @@
 package tictac;
 
 import com.meo.MeOServer;
-import edu.lmu.cs.networking.TicTacToeServer;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

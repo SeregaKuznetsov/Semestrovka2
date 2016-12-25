@@ -75,31 +75,6 @@ public class Game {
             return -1;
     }
 
-    private synchronized boolean legalShow(Player player, String command, PrintWriter output) {
-
-        if (player == currentPlayer) {
-            String direction = command.substring(5);
-            int location = getLocationByDirection(direction); //определяем координату по направлению
-            int code;
-
-            try {
-
-            code = isBrick(location);
-            checkArrayIndexOutOfBoundsException(direction);
-
-            } catch (NullPointerException e) { //если клетка пустая
-                code = 0;
-            } catch (ArrayIndexOutOfBoundsException e) { //если вышли за пределы поля
-                code = 1;
-            }
-            output.println("OPEN " + code + " " + direction);
-            currentPlayer.opponent.otherPlayerOpened(code, direction);
-            currentPlayer.wasShow = true;
-            return true;
-        }
-        return false;
-    }
-
     private int isBrick(int location) {
 
         if (board[location].equals(currentPlayer.opponent)) {
@@ -230,7 +205,6 @@ public class Game {
         int playerLocation;
 
         // Available actions
-        boolean wasShow = false;
         boolean wasMove = false;
         boolean wasThrow = false;
 
@@ -290,10 +264,10 @@ public class Game {
         }
 
         void endTurn() {
-            wasShow = false;
             wasMove = false;
             wasThrow = false;
             changePlayer();
+            currentPlayer.output.println("YOUR_MOVE");
         }
 
         /**
@@ -314,11 +288,7 @@ public class Game {
                 while (true) {
                     String command = input.readLine();
                     if (command != null) {
-                        if (command.startsWith("SHOW") && !wasShow) {
-                            if (!legalShow(this, command, output))
-                                output.println("MESSAGE It's not your turn");
-
-                        } if (command.startsWith("MOVE") && !wasMove) {
+                         if (command.startsWith("MOVE") && !wasMove) {
                             if (!legalMove(this, command, output))
                                 output.println("MESSAGE It's not your turn");
 

@@ -2,8 +2,6 @@ package tictac;
 
 import com.meo.MeOServer;
 import com.meo.Message;
-import edu.lmu.cs.networking.Game;
-import edu.lmu.cs.networking.TicTacToeServer;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;

@@ -31,7 +31,7 @@ import java.util.List;
  * A second change is that it allows an unlimited number of pairs of
  * players to play.
  */
-public class TicTacToeServer {
+public class BomberManServer {
 
     public static volatile List<Game> gamesArchive = new ArrayList<Game>(){};
 
