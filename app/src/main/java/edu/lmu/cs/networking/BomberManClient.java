@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 
 import javax.swing.*;
 
@@ -51,12 +52,13 @@ public class BomberManClient {
             in = new BufferedReader(new InputStreamReader(
                     socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-        }  catch (ConnectException e) {
-            JOptionPane.showConfirmDialog(frame,
-                    "Sorry, server is not running",
-                    "Error",
-                    JOptionPane.CLOSED_OPTION);
+        } catch (ConnectException e) {
+                JOptionPane.showConfirmDialog(frame,
+                        "Sorry, server is not running",
+                        "Error",
+                        JOptionPane.CLOSED_OPTION);
         }
+
 
         messageLabel.setBackground(Color.black);
         frame.getContentPane().add(messageLabel, "South");
@@ -130,6 +132,7 @@ public class BomberManClient {
             opponentBoardPanel.add(opponentBoard[i]);
         }
         frame.getContentPane().add(opponentBoardPanel, "East");
+
     }
 
     /**
@@ -216,6 +219,13 @@ public class BomberManClient {
                 }
             }
             out.println("QUIT");
+        } catch (SocketException e) {
+            socket.close();
+            JOptionPane.showConfirmDialog(frame,
+                    "Sorry, server is not running",
+                    "Error",
+                    JOptionPane.CLOSED_OPTION);
+            System.exit(0);
         } finally {
             socket.close();
         }
@@ -262,16 +272,16 @@ public class BomberManClient {
             playerLocation = opponentCurrentLocation;
 
         if (playerLocation % sideSize == 0 && turn.equals("LEFT")) {
-            //NOTHING
+            messageLabel.setText("Message 1");
 
         } else if ((playerLocation + 1) % sideSize == 0 && turn.equals("RIGHT")) {
-            //NOTHING
+            messageLabel.setText("Message 2");
 
         } else if (playerLocation <= sideSize && turn.equals("UP")) {
-            //NOTHING
+            messageLabel.setText("Message 3");
 
         } else if (size - playerLocation <= sideSize && turn.equals("DOWN")) {
-            //NOTHING
+            messageLabel.setText("Message 4");
 
         } else {
 
