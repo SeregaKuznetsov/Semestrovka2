@@ -23,6 +23,7 @@ public class BomberManClient {
     private final int sideSize = (int) Math.sqrt(size);
     private Square[] board = new Square[size];
     private Square[] opponentBoard = new Square[size];
+
     private int currentLocation;
     private int opponentCurrentLocation;
 
@@ -38,6 +39,7 @@ public class BomberManClient {
     private int PORT = 8901;
     private BufferedReader in;
     private PrintWriter out;
+    boolean wasMiss = false;
 
 
     /**
@@ -47,18 +49,10 @@ public class BomberManClient {
 
     private BomberManClient(String serverAddress) throws Exception {
 
-        try {
-            socket = new Socket(serverAddress, PORT);
-            in = new BufferedReader(new InputStreamReader(
-                    socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
-        } catch (ConnectException e) {
-                JOptionPane.showConfirmDialog(frame,
-                        "Sorry, server is not running",
-                        "Error",
-                        JOptionPane.CLOSED_OPTION);
-        }
 
+        socket = new Socket(serverAddress, PORT);
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new PrintWriter(socket.getOutputStream(), true);
 
         messageLabel.setBackground(Color.black);
         frame.getContentPane().add(messageLabel, "South");
@@ -79,8 +73,8 @@ public class BomberManClient {
                     out.println("MOVE DOWN");
                 }
                 if ((key == KeyEvent.VK_ENTER)){
-                    out.println("CHANGE");
-                    messageLabel.setText("CHANGE TURN");
+                        out.println("CHANGE_TURN");
+                        messageLabel.setText("CHANGE_TURN");
                 }
             }
         });
@@ -109,6 +103,7 @@ public class BomberManClient {
         for (int i = 0; i < board.length; i++) {
             final int j = i;
             board[i] = new Square();
+            board[i].setIcon(empty);
             board[i].addMouseListener(new MouseAdapter() {
                 public void mousePressed(MouseEvent e) {
                     if (e.getButton() == MouseEvent.BUTTON1) {
@@ -129,6 +124,7 @@ public class BomberManClient {
 
         for (int i = 0; i < opponentBoard.length; i++) {
             opponentBoard[i] = new Square();
+            opponentBoard[i].setIcon(empty);
             opponentBoardPanel.add(opponentBoard[i]);
         }
         frame.getContentPane().add(opponentBoardPanel, "East");
@@ -266,24 +262,16 @@ public class BomberManClient {
         String turn = response.substring(n + 2);
         int playerLocation;
 
-        if (current)
+        if (current) {
             playerLocation = currentLocation;
-        else
+            checkBoarderExit(playerLocation, turn);
+        }
+        else {
             playerLocation = opponentCurrentLocation;
+            checkBoarderExit(playerLocation, turn);
+        }
 
-        if (playerLocation % sideSize == 0 && turn.equals("LEFT")) {
-            messageLabel.setText("Message 1");
-
-        } else if ((playerLocation + 1) % sideSize == 0 && turn.equals("RIGHT")) {
-            messageLabel.setText("Message 2");
-
-        } else if (playerLocation <= sideSize && turn.equals("UP")) {
-            messageLabel.setText("Message 3");
-
-        } else if (size - playerLocation <= sideSize && turn.equals("DOWN")) {
-            messageLabel.setText("Message 4");
-
-        } else {
+         if (!checkBoarderExit(playerLocation, turn)) {
 
             int location = getLocationByDirection(turn, current); //определяем координату по направлению
 
@@ -300,6 +288,24 @@ public class BomberManClient {
             else
                 messageLabel.setText("OPPONENT OPEN " + turn);
         }
+    }
+
+    private boolean checkBoarderExit(int playerLocation, String turn) {
+
+        if (playerLocation % sideSize == 0 && turn.equals("LEFT")) {
+            return true;
+
+        } else if ((playerLocation + 1) % sideSize == 0 && turn.equals("RIGHT")) {
+            return true;
+
+        } else if (playerLocation <= sideSize && turn.equals("UP")) {
+            return true;
+
+        } else if (size - playerLocation <= sideSize && turn.equals("DOWN")) {
+            return true;
+
+        }
+        return false;
     }
 
     private void moveLocation(String response, Square[] board, int n, ImageIcon icon, boolean current) {

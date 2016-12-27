@@ -34,8 +34,8 @@ public class Game {
 
         this.board = board;
 
-        currentPlayer.playerLocation = (int) (Math.random() * board.length);
-        currentPlayer.opponent.playerLocation = (int) (Math.random() * board.length);
+        currentPlayer.playerLocation = (int) (Math.random() * size);
+        currentPlayer.opponent.playerLocation = (int) (Math.random() * size);
 
         currentPlayer.setStartPosition(currentPlayer.playerLocation);
         System.out.println(currentPlayer + " - " + currentPlayer.playerLocation);
@@ -58,7 +58,7 @@ public class Game {
      * of the players is a winner.
      */
 
-    private boolean hasWinner(int location) throws NullPointerException, ArrayIndexOutOfBoundsException {
+    private boolean CheckKill(int location) throws NullPointerException, ArrayIndexOutOfBoundsException {
         return board[location].equals(currentPlayer.opponent);
     }
 
@@ -117,14 +117,14 @@ public class Game {
             } catch (ArrayIndexOutOfBoundsException e) { //если встретили препятсвие
                 e.printStackTrace();
                 int code = 1;
-                output.println("OPEN " + code + " " +  direction); //команда для клиента нарисовать стену
+                output.println("OPEN " + code + " " +  direction);
                 output.println("MESSAGE You can't go through the block " + direction);
                 currentPlayer.opponent.otherPlayerOpened(code,  direction); // Говорим оппоненту о своем ходе
 
-            } catch (NullPointerException e) { //если на клетке пусто, то идем
+            } catch (NullPointerException e) { //если на клетке пусто
                 e.printStackTrace();
-                board[location] = currentPlayer; //игрок встает на клетку
-                output.println("VALID_MOVE " + direction); //команда разрешает ход
+                board[location] = currentPlayer;
+                output.println("VALID_MOVE " + direction);
                 currentPlayer.opponent.otherPlayerMoved(direction); // Говорим оппоненту о своем ходе
                 currentPlayer.playerLocation = location;
                 currentPlayer.endTurn(); // ЗАканчиваем ход
@@ -144,7 +144,7 @@ public class Game {
 
                 checkArrayIndexOutOfBoundsException(direction);
 
-                if (hasWinner(location)) { //проверка на попадание в оппонента
+                if (CheckKill(location)) { // если убили
                     board[location] = null;
                     output.println("VICTORY");
                     message = "DEFEAT";
@@ -296,8 +296,9 @@ public class Game {
                             if (!legalThrow(this, command, output))
                                 output.println("MESSAGE It's not your turn");
                         }
-                        else if (command.startsWith("CHANGE"))
-                            endTurn();
+                        else if (command.startsWith("CHANGE")) {
+                             endTurn();
+                        }
 
                         else if (command.startsWith("QUIT")) {
                             return;

@@ -62,9 +62,9 @@ public class BomberManServer {
     private static Object[] createMap(Game game) {
 
         Object[] board = {
-                null, Game.Blocks.GRANITE,null,
-                null,null,null,
-                null,Game.Blocks.BRICK,null};
+                Game.Blocks.GRANITE, null, Game.Blocks.BRICK,
+                null, null, null,
+                Game.Blocks.BRICK, null,  Game.Blocks.GRANITE};
 
         return board;
     }
